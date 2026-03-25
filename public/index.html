@@ -134,6 +134,80 @@ body::after {
 }
 .settings-btn:active { background: var(--accent-dim); color: var(--accent); }
 
+/* ── BELL ── */
+.bell-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 16px;
+  display: flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.bell-btn.has-alerts { border-color: var(--gold); color: var(--gold); background: rgba(255,196,66,0.08); animation: bellShake 0.5s ease; }
+@keyframes bellShake {
+  0%,100%{transform:rotate(0)} 20%{transform:rotate(-15deg)} 40%{transform:rotate(15deg)} 60%{transform:rotate(-10deg)} 80%{transform:rotate(10deg)}
+}
+.bell-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 16px; height: 16px;
+  background: var(--red); border-radius: 8px;
+  font-family: var(--mono); font-size: 9px; color: #fff; font-weight: 700;
+  display: none; align-items:center; justify-content:center; padding: 0 4px;
+}
+.bell-badge.show { display: flex; }
+
+/* ── NOTIFICATION PANEL ── */
+.notif-panel {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 200; display: none; flex-direction: column;
+  background: var(--bg);
+}
+.notif-panel.open { display: flex; }
+.notif-header {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 14px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.notif-title {
+  font-family: var(--display); font-size: 13px; font-weight: 700;
+  color: var(--white); letter-spacing: 2px; flex: 1;
+}
+.notif-clear {
+  font-family: var(--mono); font-size: 9px; color: var(--red); letter-spacing: 1px;
+  cursor: pointer; padding: 4px 8px; border: 1px solid rgba(255,51,85,0.3);
+  border-radius: 6px; background: rgba(255,51,85,0.08);
+}
+.notif-close {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--bg3); color: var(--text2); font-size: 16px;
+  display: flex; align-items:center; justify-content:center; cursor: pointer;
+}
+.notif-body { flex: 1; overflow-y: auto; padding: 12px; }
+.notif-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: 200px; gap: 10px;
+}
+.notif-empty-icon { font-size: 36px; opacity: 0.2; }
+.notif-empty-text { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 2px; }
+.notif-item {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; position: relative; overflow: hidden;
+}
+.notif-item.entry-alert { border-left: 3px solid var(--green); }
+.notif-item.sl-alert    { border-left: 3px solid var(--red); }
+.notif-item.tp-alert    { border-left: 3px solid var(--green); }
+.notif-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.notif-type { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; padding: 3px 8px; border-radius: 6px; }
+.notif-type.entry { background: rgba(0,255,136,0.1); color: var(--green); }
+.notif-type.sl    { background: rgba(255,51,85,0.1);  color: var(--red); }
+.notif-type.tp    { background: rgba(0,255,136,0.1);  color: var(--green); }
+.notif-pair { font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--white); }
+.notif-time { font-family: var(--mono); font-size: 9px; color: var(--text3); }
+.notif-prices { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin-top: 8px; }
+
 /* ── TABS ── */
 .tabs {
   height: var(--tab-h);
@@ -653,6 +727,10 @@ body::after {
     <div class="live-dot" id="liveDot"></div>
     <span class="live-text" id="liveText">LIVE</span>
   </div>
+  <div class="bell-btn" id="bellBtn" onclick="openNotifPanel()">
+    🔔
+    <div class="bell-badge" id="bellBadge">0</div>
+  </div>
   <div class="sound-btn active" id="soundBtn" onclick="toggleSound()">🔊</div>
   <div class="settings-btn" onclick="goSettings()">⚙️</div>
 </div>
@@ -759,6 +837,21 @@ body::after {
   </div>
 </div>
 
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-header">
+    <div class="notif-title">🔔 ALERTS</div>
+    <div class="notif-clear" onclick="clearAllNotifs()">CLEAR ALL</div>
+    <div class="notif-close" onclick="closeNotifPanel()">✕</div>
+  </div>
+  <div class="notif-body" id="notifBody">
+    <div class="notif-empty">
+      <div class="notif-empty-icon">🔔</div>
+      <div class="notif-empty-text">NO ALERTS YET</div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -766,7 +859,7 @@ body::after {
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 // PROXY_URL: Render deploy ke baad yahan apna URL daalo
 // Example: const PROXY_URL = 'https://tradesig-proxy.onrender.com';
-const PROXY_URL = 'YOUR_RENDER_URL_HERE';
+const PROXY_URL = 'https://tradesig-proxy.onrender.com';
 
 const CHANNELS = [
   { name: 'DAILY SIGNAL', chatId: '-1003823176395' },
@@ -775,6 +868,79 @@ const CHANNELS = [
 ];
 
 const REFRESH_SEC = 30;
+
+// ── NOTIFICATIONS STATE ────────────────────────────────────────────────────
+let notifications = []; // { type, pair, dir, entry, sl, tp, rr, time, ch }
+
+function addNotification(type, signal, chName) {
+  const notif = {
+    type, // 'entry' | 'sl' | 'tp'
+    pair: signal.pair || '——',
+    dir:  signal.dir  || '',
+    entry: signal.entry || '—',
+    sl:    signal.sl    || '—',
+    tp:    signal.tp    || '—',
+    rr:    signal.rr    || null,
+    ch:    chName,
+    time:  new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
+  };
+  notifications.unshift(notif);
+  updateBellBadge();
+  renderNotifPanel();
+}
+
+function updateBellBadge() {
+  const badge = document.getElementById('bellBadge');
+  const btn   = document.getElementById('bellBtn');
+  if (notifications.length > 0) {
+    badge.textContent = notifications.length > 9 ? '9+' : notifications.length;
+    badge.classList.add('show');
+    btn.classList.add('has-alerts');
+  } else {
+    badge.classList.remove('show');
+    btn.classList.remove('has-alerts');
+  }
+}
+
+function renderNotifPanel() {
+  const body = document.getElementById('notifBody');
+  if (notifications.length === 0) {
+    body.innerHTML = `<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div class="notif-empty-text">NO ALERTS YET</div></div>`;
+    return;
+  }
+  body.innerHTML = notifications.map(n => {
+    const typeLabel = n.type === 'entry' ? 'NEW SIGNAL' : n.type === 'sl' ? 'SL HIT' : 'TP HIT';
+    const typeClass = n.type;
+    return `<div class="notif-item ${n.type}-alert">
+      <div class="notif-item-top">
+        <span class="notif-type ${typeClass}">${typeLabel}</span>
+        <span class="notif-time">${n.time} · ${n.ch.split(' ')[0]}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="notif-pair">${n.pair}</span>
+        ${n.dir ? `<span class="dir-badge ${n.dir}">${n.dir.toUpperCase()}</span>` : ''}
+      </div>
+      <div class="notif-prices">
+        <div class="price-box entry"><div class="price-box-label">ENTRY</div><div class="price-box-val">${n.entry}</div></div>
+        <div class="price-box sl"><div class="price-box-label">SL</div><div class="price-box-val">${n.sl}</div></div>
+        <div class="price-box tp"><div class="price-box-label">TP</div><div class="price-box-val">${n.tp}</div></div>
+      </div>
+      ${n.rr ? `<div style="text-align:right;margin-top:6px"><span class="rr-pill">R:R ${n.rr}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openNotifPanel() {
+  document.getElementById('notifPanel').classList.add('open');
+}
+function closeNotifPanel() {
+  document.getElementById('notifPanel').classList.remove('open');
+}
+function clearAllNotifs() {
+  notifications = [];
+  updateBellBadge();
+  renderNotifPanel();
+}
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let soundOn = true;
@@ -843,6 +1009,15 @@ function parseSignal(text) {
   return { dir, pair, entry, sl, tp, rr };
 }
 
+// ── DETECT SL/TP HIT ───────────────────────────────────────────────────────
+function detectHit(text) {
+  if (!text) return null;
+  const t = text.toUpperCase();
+  if (/SL\s*HIT|STOP\s*HIT|STOPPED\s*OUT|STOPLOSS\s*HIT/.test(t)) return 'sl';
+  if (/TP\s*HIT|TAKE\s*PROFIT\s*HIT|TARGET\s*HIT|PROFIT\s*HIT/.test(t)) return 'tp';
+  return null;
+}
+
 // ── FORMAT ─────────────────────────────────────────────────────────────────
 function fmtTime(unix) {
   const d = new Date(unix * 1000);
@@ -868,7 +1043,19 @@ function renderPage(chIdx, messages) {
     const parsed = parseSignal(text);
     const isNew = !seenIds.has(id);
     if (parsed) signals.push({ ...parsed, text, ts, id, isNew });
-    else if (text.trim()) raws.push({ text, ts, id });
+    else if (text.trim()) {
+      // Check for SL/TP hit messages
+      if (isNew) {
+        const hit = detectHit(text);
+        if (hit) {
+          const pairMatch = text.match(/\b([A-Z]{6}|[A-Z]{3}[\/\.]?[A-Z]{3})\b/i);
+          const fakeSig = { pair: pairMatch ? pairMatch[1].toUpperCase() : '——', dir:'', entry:'—', sl:'—', tp:'—', rr:null };
+          addNotification(hit, fakeSig, CHANNELS[chIdx].name);
+          playBeep();
+        }
+      }
+      raws.push({ text, ts, id });
+    }
     seenIds.add(id);
   });
 
@@ -983,7 +1170,13 @@ async function fetchAll() {
 
     data.channels.forEach((ch, i) => {
       renderPage(i, ch.messages);
-      allSignals[i].forEach(s => { if (!prevIds.has(s.id)) newCount++; });
+      // New signals — add to notifications
+      allSignals[i].forEach(s => {
+        if (!prevIds.has(s.id)) {
+          newCount++;
+          addNotification('entry', s, CHANNELS[i].name);
+        }
+      });
     });
 
     if (newCount > 0) {
