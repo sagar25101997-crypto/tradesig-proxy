@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#060a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Trade Signals</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@400;600&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #060a0f;
+  --bg2:       #0b1118;
+  --bg3:       #0f1820;
+  --border:    #162030;
+  --border2:   #1e3048;
+  --green:     #00ff88;
+  --green-dim: rgba(0,255,136,0.08);
+  --red:       #ff3355;
+  --red-dim:   rgba(255,51,85,0.08);
+  --gold:      #ffc442;
+  --accent:    #00d4ff;
+  --accent-dim:rgba(0,212,255,0.08);
+  --text:      #b8cfe0;
+  --text2:     #6a8aa8;
+  --text3:     #3a5570;
+  --white:     #e8f4ff;
+  --mono:      'IBM Plex Mono', monospace;
+  --display:   'Orbitron', monospace;
+  --ui:        'Exo 2', sans-serif;
+  --tab-h:     56px;
+  --header-h:  58px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* Scanline overlay */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* ── HEADER ── */
+.header {
+  height: var(--header-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.header-logo {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--green);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0,255,136,0.4);
+  flex: 1;
+}
+.header-logo span { color: var(--accent); }
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0,255,136,0.06);
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.live-text {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--green);
+  letter-spacing: 2px;
+}
+
+.sound-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 15px;
+  display: flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sound-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(255,196,66,0.08); }
+
+.settings-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 15px;
+  display: flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.settings-btn:active { background: var(--accent-dim); color: var(--accent); }
+
+/* ── TABS ── */
+.tabs {
+  height: var(--tab-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active { border-bottom-color: var(--green); }
+.tab.active .tab-name { color: var(--green); }
+.tab.active .tab-count { background: var(--green); color: #000; }
+
+.tab-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.tab-count {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--bg3);
+  color: var(--text2);
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+/* ── CONTENT ── */
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: none;
+  -webkit-overflow-scrolling: touch;
+}
+.page.active { display: block; }
+
+/* Scrollbar */
+.page::-webkit-scrollbar { width: 3px; }
+.page::-webkit-scrollbar-track { background: transparent; }
+.page::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.stat-n {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+.stat-n.green { color: var(--green); }
+.stat-n.red   { color: var(--red); }
+.stat-l {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+/* ── SIGNAL CARD ── */
+.signal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  animation: cardIn 0.25s ease;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.signal-card:active { transform: scale(0.99); }
+
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.signal-card.new-signal {
+  border-color: var(--green);
+  box-shadow: 0 0 20px rgba(0,255,136,0.1);
+  animation: cardIn 0.25s ease, newGlow 2s ease forwards;
+}
+@keyframes newGlow {
+  0%   { box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+  100% { box-shadow: none; }
+}
+
+.signal-card::before {
+  content:'';
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:3px;
+  border-radius:2px 0 0 2px;
+}
+.signal-card.buy::before  { background: var(--green); }
+.signal-card.sell::before { background: var(--red); }
+
+/* Glow bg */
+.signal-card.buy::after {
+  content:'';
+  position:absolute;
+  top:0; right:0; bottom:0;
+  width:60%;
+  background: linear-gradient(90deg, transparent, rgba(0,255,136,0.03));
+  pointer-events:none;
+}
+.signal-card.sell::after {
+  content:'';
+  position:absolute;
+  top:0; right:0; bottom:0;
+  width:60%;
+  background: linear-gradient(90deg, transparent, rgba(255,51,85,0.03));
+  pointer-events:none;
+}
+
+.card-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pair-name {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 1px;
+}
+
+.dir-badge {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 2px;
+}
+.dir-badge.buy  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,136,0.25); }
+.dir-badge.sell { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,51,85,0.25); }
+
+.price-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.price-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.price-box-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.price-box-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+.price-box.entry .price-box-val { color: var(--accent); }
+.price-box.sl    .price-box-val { color: var(--red); }
+.price-box.tp    .price-box-val { color: var(--green); }
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.card-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+}
+
+.rr-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--gold);
+  background: rgba(255,196,66,0.08);
+  border: 1px solid rgba(255,196,66,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.new-pill {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: #000;
+  background: var(--green);
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+  animation: blink 1s infinite;
+}
+
+/* Raw message card */
+.raw-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.raw-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.raw-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+
+/* ── EMPTY ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 10px;
+}
+.empty-icon { font-size: 42px; opacity: 0.25; }
+.empty-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 2px;
+}
+
+/* ── HISTORY PAGE ── */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.hist-dir {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+  font-family: var(--display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.hist-dir.buy  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+.hist-dir.sell { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,51,85,0.2); }
+.hist-info { flex: 1; }
+.hist-pair {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+.hist-prices {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.hist-channel {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  text-align: right;
+}
+.hist-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── SETTINGS PAGE ── */
+.settings-section {
+  margin-bottom: 20px;
+}
+.settings-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 2px;
+}
+
+.setting-row {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.setting-label {
+  font-family: var(--ui);
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+.setting-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.toggle {
+  width: 42px; height: 24px;
+  border-radius: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: rgba(0,255,136,0.2); border-color: var(--green); }
+.toggle::after {
+  content:'';
+  position:absolute;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--text3);
+  top: 2px; left: 2px;
+  transition: all 0.2s;
+}
+.toggle.on::after { background: var(--green); left: 20px; box-shadow: 0 0 8px var(--green); }
+
+.channel-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+.channel-name {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.channel-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  height: 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-shrink: 0;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text3);
+}
+.nav-item.active { color: var(--green); }
+.nav-icon { font-size: 18px; }
+.nav-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── REFRESH INDICATOR ── */
+.refresh-bar {
+  height: 2px;
+  background: var(--border);
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.refresh-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--accent));
+  width: 100%;
+  transform-origin: left;
+  animation: shrink 30s linear infinite;
+}
+@keyframes shrink { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ── LOADING ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 2px;
+}
+.spin {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: rotate 0.7s linear infinite;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg2);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+  box-shadow: 0 0 20px rgba(0,255,136,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">TRADE<span>SIG</span></div>
+  <div class="live-badge">
+    <div class="live-dot" id="liveDot"></div>
+    <span class="live-text" id="liveText">LIVE</span>
+  </div>
+  <div class="sound-btn active" id="soundBtn" onclick="toggleSound()">🔊</div>
+  <div class="settings-btn" onclick="goSettings()">⚙️</div>
+</div>
+
+<!-- REFRESH BAR -->
+<div class="refresh-bar">
+  <div class="refresh-progress" id="refreshBar"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="channelTabs">
+  <div class="tab active" onclick="switchTab(0)" id="tab0">
+    <span class="tab-name">DAILY</span>
+    <span class="tab-count" id="cnt0">—</span>
+  </div>
+  <div class="tab" onclick="switchTab(1)" id="tab1">
+    <span class="tab-name">FVG</span>
+    <span class="tab-count" id="cnt1">—</span>
+  </div>
+  <div class="tab" onclick="switchTab(2)" id="tab2">
+    <span class="tab-name">CRT</span>
+    <span class="tab-count" id="cnt2">—</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PAGE 0: DAILY SIGNAL -->
+  <div class="page active" id="page0"></div>
+
+  <!-- PAGE 1: FVG SIGNAL -->
+  <div class="page" id="page1"></div>
+
+  <!-- PAGE 2: CRT SIGNAL -->
+  <div class="page" id="page2"></div>
+
+  <!-- PAGE 3: HISTORY -->
+  <div class="page" id="page3">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:12px;">// ALL SIGNALS HISTORY</div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- PAGE 4: SETTINGS -->
+  <div class="page" id="page4">
+    <div class="settings-section">
+      <div class="settings-title">// Channels</div>
+      <div class="channel-card">
+        <div class="channel-name">📡 DAILY SIGNAL</div>
+        <div class="channel-id">Chat: -1003823176395</div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-name">📡 FVG SIGNAL</div>
+        <div class="channel-id">Chat: -1003842429805</div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-name">📡 CRT SIGNAL</div>
+        <div class="channel-id">Chat: -1003562279289</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">// Preferences</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Sound Alert</div>
+          <div class="setting-sub">New signal pe beep</div>
+        </div>
+        <div class="toggle on" id="soundToggle" onclick="toggleSound()"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Auto Refresh</div>
+          <div class="setting-sub">Har 30 second</div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">// App Info</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Version</div>
+          <div class="setting-sub">TradeSignal v1.0</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3)">v1.0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="goSignals()" id="navSignals">
+    <div class="nav-icon">📡</div>
+    <div class="nav-label">Signals</div>
+  </div>
+  <div class="nav-item" onclick="goHistory()" id="navHistory">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">History</div>
+  </div>
+  <div class="nav-item" onclick="goSettings()" id="navSettings">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Settings</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+// PROXY_URL: Render deploy ke baad yahan apna URL daalo
+// Example: const PROXY_URL = 'https://tradesig-proxy.onrender.com';
+const PROXY_URL = 'YOUR_RENDER_URL_HERE';
+
+const CHANNELS = [
+  { name: 'DAILY SIGNAL', chatId: '-1003823176395' },
+  { name: 'FVG SIGNAL',   chatId: '-1003842429805' },
+  { name: 'CRT SIGNAL',   chatId: '-1003562279289' },
+];
+
+const REFRESH_SEC = 30;
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let soundOn = true;
+let currentTab = 0;
+let currentNav = 'signals';
+let allSignals = [[], [], []];
+let seenIds = new Set();
+let refreshTimer;
+
+// ── SOUND ──────────────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function playBeep() {
+  if (!soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    o.frequency.setValueAtTime(660, audioCtx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    o.start(); o.stop(audioCtx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  document.getElementById('soundBtn').className = 'sound-btn' + (soundOn ? ' active' : '');
+  const t = document.getElementById('soundToggle');
+  t.className = 'toggle' + (soundOn ? ' on' : '');
+  showToast(soundOn ? 'SOUND ON' : 'SOUND OFF');
+}
+
+// ── PARSE ──────────────────────────────────────────────────────────────────
+function parseSignal(text) {
+  if (!text) return null;
+  const t = text.toUpperCase();
+  let dir = null;
+  if (/\bBUY\b/.test(t)) dir = 'buy';
+  else if (/\bSELL\b/.test(t)) dir = 'sell';
+
+  const pairMatch = text.match(/\b([A-Z]{3}[\/\.]?[A-Z]{3})\b/i) || text.match(/\b([A-Z]{6})\b/);
+  const pair = pairMatch ? pairMatch[1].toUpperCase().replace('/','').replace('.','') : null;
+
+  const entryM = text.match(/(?:ENTRY|PRICE|@)\s*[:\-]?\s*([0-9]+\.?[0-9]*)/i);
+  const slM    = text.match(/(?:SL|STOP[- ]?LOSS)\s*[:\-]?\s*([0-9]+\.?[0-9]*)/i);
+  const tpM    = text.match(/(?:TP\s*[12]?|TAKE[- ]?PROFIT\s*[12]?)\s*[:\-]?\s*([0-9]+\.?[0-9]*)/i);
+
+  const entry = entryM ? entryM[1] : null;
+  const sl    = slM    ? slM[1]    : null;
+  const tp    = tpM    ? tpM[1]    : null;
+
+  if (!dir && !pair) return null;
+
+  let rr = null;
+  if (entry && sl && tp) {
+    const e = parseFloat(entry), s = parseFloat(sl), t2 = parseFloat(tp);
+    const risk = Math.abs(e - s), reward = Math.abs(t2 - e);
+    if (risk > 0) rr = (reward / risk).toFixed(1);
+  }
+
+  return { dir, pair, entry, sl, tp, rr };
+}
+
+// ── FORMAT ─────────────────────────────────────────────────────────────────
+function fmtTime(unix) {
+  const d = new Date(unix * 1000);
+  return d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+function fmtDate(unix) {
+  const d = new Date(unix * 1000);
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) + ' ' +
+         d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+}
+
+// ── RENDER CHANNEL PAGE ────────────────────────────────────────────────────
+function renderPage(chIdx, messages) {
+  const page = document.getElementById('page' + chIdx);
+  const signals = [], raws = [];
+
+  messages.forEach(m => {
+    const msg = m.message || m.channel_post;
+    if (!msg) return;
+    const text = msg.text || msg.caption || '';
+    const id   = msg.message_id;
+    const ts   = msg.date;
+    const parsed = parseSignal(text);
+    const isNew = !seenIds.has(id);
+    if (parsed) signals.push({ ...parsed, text, ts, id, isNew });
+    else if (text.trim()) raws.push({ text, ts, id });
+    seenIds.add(id);
+  });
+
+  allSignals[chIdx] = signals;
+  document.getElementById('cnt' + chIdx).textContent = signals.length || '0';
+
+  let html = '';
+
+  // Stats
+  const buys  = signals.filter(s => s.dir === 'buy').length;
+  const sells = signals.filter(s => s.dir === 'sell').length;
+  html += `<div class="stats-row">
+    <div class="stat"><div class="stat-n">${signals.length}</div><div class="stat-l">TOTAL</div></div>
+    <div class="stat"><div class="stat-n green">${buys}</div><div class="stat-l">BUY</div></div>
+    <div class="stat"><div class="stat-n red">${sells}</div><div class="stat-l">SELL</div></div>
+  </div>`;
+
+  if (signals.length === 0 && raws.length === 0) {
+    html += `<div class="empty-state">
+      <div class="empty-icon">📡</div>
+      <div class="empty-text">NO SIGNALS YET</div>
+    </div>`;
+  }
+
+  signals.forEach(s => {
+    html += `<div class="signal-card ${s.dir || ''} ${s.isNew ? 'new-signal' : ''}">
+      <div class="card-row1">
+        <span class="pair-name">${s.pair || '——'}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${s.isNew ? '<span class="new-pill">NEW</span>' : ''}
+          ${s.dir ? `<span class="dir-badge ${s.dir}">${s.dir.toUpperCase()}</span>` : ''}
+        </div>
+      </div>
+      <div class="price-row">
+        <div class="price-box entry">
+          <div class="price-box-label">ENTRY</div>
+          <div class="price-box-val">${s.entry || '—'}</div>
+        </div>
+        <div class="price-box sl">
+          <div class="price-box-label">SL</div>
+          <div class="price-box-val">${s.sl || '—'}</div>
+        </div>
+        <div class="price-box tp">
+          <div class="price-box-label">TP</div>
+          <div class="price-box-val">${s.tp || '—'}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">${s.ts ? fmtTime(s.ts) : ''}</span>
+        ${s.rr ? `<span class="rr-pill">R:R ${s.rr}</span>` : ''}
+      </div>
+    </div>`;
+  });
+
+  if (raws.length) {
+    html += `<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin:12px 0 8px;">// OTHER MESSAGES</div>`;
+    raws.forEach(r => {
+      html += `<div class="raw-card">
+        <div class="raw-text">${r.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <div class="raw-time">${r.ts ? fmtTime(r.ts) : ''}</div>
+      </div>`;
+    });
+  }
+
+  page.innerHTML = html;
+}
+
+// ── RENDER HISTORY ─────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const all = [];
+  allSignals.forEach((sigs, ci) => {
+    sigs.forEach(s => all.push({ ...s, ch: CHANNELS[ci].name }));
+  });
+  all.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+  if (all.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">NO HISTORY</div></div>`;
+    return;
+  }
+
+  list.innerHTML = all.map(s => `
+    <div class="history-item">
+      <div class="hist-dir ${s.dir || ''}">${s.dir ? s.dir.toUpperCase() : '??'}</div>
+      <div class="hist-info">
+        <div class="hist-pair">${s.pair || '——'}</div>
+        <div class="hist-prices">E:${s.entry||'—'} SL:${s.sl||'—'} TP:${s.tp||'—'}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="hist-channel" style="color:var(--green);font-size:8px">${s.ch.split(' ')[0]}</div>
+        <div class="hist-time">${s.ts ? fmtDate(s.ts) : ''}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── FETCH ──────────────────────────────────────────────────────────────────
+async function fetchAll() {
+  const dot = document.getElementById('liveDot');
+  const txt = document.getElementById('liveText');
+  dot.style.background = 'var(--gold)';
+  dot.style.boxShadow  = '0 0 6px var(--gold)';
+  txt.textContent = 'SYNC';
+
+  let newCount = 0;
+  const prevIds = new Set(seenIds);
+
+  try {
+    const res = await fetch(PROXY_URL + '/signals');
+    const data = await res.json();
+
+    if (!data.ok) throw new Error('Proxy error');
+
+    data.channels.forEach((ch, i) => {
+      renderPage(i, ch.messages);
+      allSignals[i].forEach(s => { if (!prevIds.has(s.id)) newCount++; });
+    });
+
+    if (newCount > 0) {
+      playBeep();
+      showToast(`${newCount} NEW SIGNAL${newCount > 1 ? 'S' : ''}`);
+    }
+
+    renderHistory();
+
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow  = '0 0 6px var(--green)';
+    txt.textContent = 'LIVE';
+
+  } catch(e) {
+    console.error(e);
+    dot.style.background = 'var(--red)';
+    dot.style.boxShadow  = '0 0 6px var(--red)';
+    txt.textContent = 'ERR';
+    showToast('CONNECTION ERROR');
+  }
+
+  const bar = document.getElementById('refreshBar');
+  bar.style.animation = 'none';
+  bar.offsetHeight;
+  bar.style.animation = '';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function switchTab(i) {
+  currentTab = i;
+  document.querySelectorAll('.tab').forEach((t,j) => t.className = 'tab' + (j===i?' active':''));
+  document.querySelectorAll('.page').forEach(p => p.className = 'page');
+  document.getElementById('page' + i).className = 'page active';
+}
+
+function goSignals() {
+  currentNav = 'signals';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('navSignals').classList.add('active');
+  document.getElementById('channelTabs').style.display = 'flex';
+  switchTab(currentTab);
+}
+
+function goHistory() {
+  currentNav = 'history';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('navHistory').classList.add('active');
+  document.getElementById('channelTabs').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.className = 'page');
+  document.getElementById('page3').className = 'page active';
+  renderHistory();
+}
+
+function goSettings() {
+  currentNav = 'settings';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('navSettings').classList.add('active');
+  document.getElementById('channelTabs').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.className = 'page');
+  document.getElementById('page4').className = 'page active';
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── AUTO REFRESH ───────────────────────────────────────────────────────────
+function startAutoRefresh() {
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(fetchAll, REFRESH_SEC * 1000);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+fetchAll();
+startAutoRefresh();
+</script>
+</body>
+</html>
