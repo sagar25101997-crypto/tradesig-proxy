@@ -4,12 +4,11 @@ const https = require('https');
 
 const app = express();
 app.use(cors());
-app.use(express.static('public'));
 
 const CHANNELS = [
   { name: 'DAILY SIGNAL', token: '8517848241:AAFqisy45BmSTk9PpUWN2KxliyY3YTJ-Iqs', chatId: '-1003823176395' },
   { name: 'FVG SIGNAL',   token: '8748227924:AAG09vfNAI_O3T9b-E_aWTaeR81J4QDynCE', chatId: '-1003842429805' },
-  { name: 'CRT SIGNAL',   token: '8379004300:AAEAmp9LoA5LTbIdxHoIpsKAmAWfUr0iapM', chatId: '-1003562279289' },
+  { name: 'CRT SIGNAL',   token: '8379004300:AAEAmp9LoA5LTbIdxHoIpsKAmAVfUr0iapM', chatId: '-1003562279289' },
 ];
 
 function telegramGet(token, method, params) {
@@ -27,6 +26,7 @@ function telegramGet(token, method, params) {
   });
 }
 
+// GET /signals — returns all channels data
 app.get('/signals', async (req, res) => {
   try {
     const results = await Promise.all(CHANNELS.map(async (ch) => {
@@ -50,6 +50,9 @@ app.get('/signals', async (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
+
+// Health check
+app.get('/', (req, res) => res.send('TradeSig Proxy OK'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port', PORT));
